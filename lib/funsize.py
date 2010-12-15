@@ -45,7 +45,7 @@ def couch_start():
     if not settings.server and not settings.src_dbname:
         sys.exit("Can't find a server or source database or couchapprc")
     if not settings.dst_dbname:
-        settings.dst_dbname = "%s-mini" % settings.src_dbname
+        settings.dst_dbname = "%s-funsize" % settings.src_dbname
     server = couchdb.client.Server(settings.server)
     try:
         src_db = server[settings.src_dbname]
