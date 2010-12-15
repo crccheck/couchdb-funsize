@@ -1,0 +1,7 @@
+couchdb-funsize takes a couchdb database and samples it to make a smaller database.
+This is useful if you're trying to test views and you're spending more time
+browsing YouTube while your views rebuild instead of working.
+
+Usage
+
+./funsize.py -h
