@@ -1,8 +1,10 @@
 Intro
 =====
-couchdb-funsize takes a couchdb database and samples it to make a smaller database.
-This is useful if you're trying to test views and you're spending more time
-browsing YouTube while your views rebuild instead of working.
+couchdb-funsize is a simple python script takes a couchdb database and samples
+it to make a smaller database. This is useful if you're trying to test views
+and you're spending more time browsing YouTube while your views rebuild instead
+of working. It is designed to be run from the command line. If this script is
+near a .couchapprc file, it will use it.
 
 Usage
 =====
@@ -24,3 +26,8 @@ Installation
 ============
 
 `pip install -r requirements.txt`
+
+Notes
+=====
+This script isn't that fast either. The transaction costs are pretty high
+because we can't do bulk insertions.
