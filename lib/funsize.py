@@ -4,10 +4,11 @@ try:
     import simplejson as json
 except ImportError:
     import json
-import couchdb
 import os
 import sys
+
 from optparse import OptionParser
+import couchdb
 
 parser = OptionParser()
 parser.add_option("-s", "--target-size", dest="target_size", default=10000,
@@ -63,23 +64,22 @@ def couch_start():
     return src_db, dst_db
 
 def main():
-    def get_row_count():
-        v = src_db.view('_all_docs', limit=0)
-        return v.total_rows
     settings.target_size = int(settings.target_size)
     settings.chunk_size = int(settings.chunk_size)
     src_db, dst_db = couch_start()
-    n = get_row_count()
+    print "Pulling list of docs..."
+    v = src_db.view('_all_docs')
+    n = v.total_rows
     if n < settings.target_size:
         sys.exit('Source database already small enough')
     skip_size = settings.chunk_size * n / settings.target_size
     i = 1
     for skip in xrange(0, n-settings.chunk_size, skip_size):
-        v = src_db.view('_all_docs', skip=skip, limit=settings.chunk_size)
-        for row in v.rows:
+        for row in v.rows[skip:-settings.chunk_size]:
             if row.key[0] != '_':
-                doc = src_db[row.key]
-                dst_db[row.key] = doc
+                _, _, doc_f = src_db.resource.get(row.key)
+                doc = doc_f.read()
+                dst_db.resource.put(path=row.key, body=doc, headers={'Content-Type':'application/json'})
                 i += 1
                 if i > settings.target_size:
                     break;
