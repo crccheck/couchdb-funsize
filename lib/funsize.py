@@ -91,4 +91,8 @@ def main():
 #logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "^C HALT"
+        sys.exit(1)
