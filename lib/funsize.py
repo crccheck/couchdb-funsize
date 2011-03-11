@@ -7,8 +7,13 @@ except ImportError:
 import os
 import sys
 
-from optparse import OptionParser
 import couchdb
+from optparse import OptionParser
+from urllib2 import urlopen
+import httplib2
+
+
+http = httplib2.Http()
 
 parser = OptionParser()
 parser.add_option("-s", "--target-size", dest="target_size", default=10000,
@@ -68,18 +73,19 @@ def main():
     settings.chunk_size = int(settings.chunk_size)
     src_db, dst_db = couch_start()
     print "Pulling list of docs..."
-    v = src_db.view('_all_docs')
-    n = v.total_rows
+    v = json.load(urlopen("%s/%s/_all_docs" % (settings.server, settings.src_dbname)))
+    n = v['total_rows']
     if n < settings.target_size:
         sys.exit('Source database already small enough')
     skip_size = settings.chunk_size * n / settings.target_size
     i = 1
     for skip in xrange(0, n-settings.chunk_size, skip_size):
-        for row in v.rows[skip:-settings.chunk_size]:
-            if row.key[0] != '_':
-                _, _, doc_f = src_db.resource.get(row.key)
-                doc = doc_f.read()
-                dst_db.resource.put(path=row.key, body=doc, headers={'Content-Type':'application/json'})
+        for row in v['rows'][skip:-settings.chunk_size]:
+            if row['key'][0] != '_':
+                doc = urlopen("%s/%s/%s" % (settings.server, settings.src_dbname, row['key'])).read()
+                # todo bulk updates and reads
+                http.request("%s/%s/%s" % (settings.server, settings.dst_dbname, row['key']),
+                    method="PUT", body=doc, headers={'Content-Type':'application/json'})
                 i += 1
                 if i > settings.target_size:
                     break;
